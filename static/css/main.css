@@ -1,0 +1,9 @@
+body {
+    background: #100C2AFF;
+    background: -webkit-linear-gradient(to right, #100c2a, #FFFCDC);
+    background: linear-gradient(to right, #100C2AFF, #100C2AFF);
+}
+
+table, td {
+    border: 1px solid black;
+}

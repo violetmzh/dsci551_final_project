@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Air Quality Index</title>
+    <link rel="icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/main.css">
+    <script type="module" src="/static/js/new.js"></script>
+    <script src="https://cdn.staticfile.org/vue/2.2.2/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+
+</head>
+
+<body>
+
+    <div>
+        <h1 style="color: white">Air Quality Index</h1>
+    </div>
+
+    <div class="chart_box">
+        <div id="main"></div>
+    </div>
+
+    <div id="mainChart"></div>
+    <div id="newChartBox"></div>
+
+</body>
+
+</html>
+
+<script type="text/javascript">
+    let v = new Vue({
+        el: 'body>div',
+        data: {
+            info: 'asfsad'
+        },
+        created () {
+        },
+        mounted () {
+            setTimeout(() => {
+                this.initFirst2()
+            }, 1000)
+
+        },
+        methods: {
+
+            initFirst2 () {
+                var chartDom = document.getElementById('main')
+                var myChart = echarts.init(chartDom, 'dark')
+                var option
+
+                $.ajax({
+                    type: "get",
+                    url: "http://127.0.0.1:9000/get-year",
+                    async: true,
+                    success: (data) => {
+                        const res = JSON.parse(data)
+                        if (res.code !== 200) console.log('error')
+
+                        const response = res.data
+
+                        const { humidity, temperature, pmtwo, people, tag, year, city } = response
+                        const years = year
+                        console.log(year[0],year[year.length-1]);
+
+                        function dataFormatter (obj) {
+                            // prettier-ignore
+                            var pList = city
+
+                            var temp
+
+                            years.forEach(function (year) {
+                                
+                                var temp = obj[year];
+                                console.log('year',year,temp);
+                                temp.forEach(function (value, i) {
+                                    obj[year][i] = {
+                                        name: pList[i],
+                                        value: value
+                                    };
+                                });
+                            });
+                            
+                            return obj
+                        }
+
+
+                        var dataMap = {}
+
+                        // base series
+                        const series = tag.map(it => {
+                            var arr =
+                                arr = {
+                                    name: it,
+                                    type: 'bar'
+                                }
+                            return arr
+                        })
+
+                        dataMap.dataT = dataFormatter(pmtwo)
+                        dataMap.dataH = dataFormatter(humidity)
+                        dataMap.dataST = dataFormatter(temperature)
+                        dataMap.dataP = dataFormatter(people)
+
+                        console.log(dataMap );
+                        var arr = []
+
+                        year.forEach(it => {
+                            arr.push({
+                                series: [
+                                    { data: dataMap.dataH[it] },
+                                    { data: dataMap.dataT[it] },
+                                    { data: dataMap.dataST[it] },
+                                    { data: dataMap.dataP[it] },
+
+                                ]
+                            },)
+                        })
+
+
+
+
+                        option = {
+                            baseOption: {
+                                timeline: {
+                                    axisType: 'category',
+                                    autoPlay: true,
+                                    playInterval: 1000,
+                                    data: year,
+                                },
+
+                                tooltip: {},
+
+                                calculable: true,
+                                grid: {
+                                    top: 80,
+                                    bottom: 100,
+                                    tooltip: {
+                                        trigger: 'axis',
+                                        axisPointer: {
+                                            type: 'shadow',
+                                            label: {
+                                                show: true,
+                                            }
+                                        }
+                                    }
+                                },
+                                xAxis: [
+                                    {
+                                        type: 'category',
+                                        axisLabel: { interval: 0 },
+                                        data: response.city,
+                                        splitLine: { show: false }
+                                    }
+                                ],
+                                yAxis: [
+                                    {
+                                        type: 'value',
+                                        name: ''
+                                    }
+                                ],
+                                series: series,
+                                legend: {
+                                    // Try 'horizontal'
+                                    orient: 'vertical',
+                                    right: 10,
+                                    top: 'center'
+                                },
+                                toolbox: {
+                                    show: true,
+                                    feature: {
+                                        dataZoom: {
+                                            yAxisIndex: 'none'
+                                        },
+                                        dataView: { readOnly: false },
+                                        magicType: { type: ['line', 'bar'] },
+                                        restore: {},
+                                        saveAsImage: {}
+                                    }
+                                },
+                            },
+
+                            options: arr
+
+                        }
+
+                        option && myChart.setOption(option)
+
+                    }
+                })
+
+
+            },
+        }
+    })
+
+
+</script>
+<style>
+    @media (max-width: 768px) {
+        #main {
+            width: 100%;
+            height: 500px;
+        }
+    }
+
+    @media (min-width: 768px) {
+        #main {
+            width: 100%;
+            height: 500px;
+        }
+    }
+</style>
